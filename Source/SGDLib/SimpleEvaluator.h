@@ -112,7 +112,7 @@ public:
 
         std::vector<Matrix<ElemType>*> learnParamsGradients;
         DataReaderHelpers::SubminibatchDispatcher<ElemType> smbDispatcher;
-        size_t numSubminibatchesNeeded = DataReaderHelpers::GetNumSubminibatchesNeeded(dataReader, m_maxSamplesInRAM, m_numSubminiBatches, mbSize);
+        size_t numSubminibatchesNeeded = DataReaderHelpers::GetNumSubminibatchesNeeded<ElemType>(dataReader, m_maxSamplesInRAM, m_numSubminiBatches, mbSize);
 
         // Passing in two empty node lists so the dispatcher can work for the evalNodes.
         std::list<ComputationNodeBasePtr> learnableNodes;
@@ -120,7 +120,7 @@ public:
         if (numSubminibatchesNeeded > 1)
             smbDispatcher.Init(m_net, learnableNodes, criterionNodes, evalNodes);
 
-        while (DataReaderHelpers::GetMinibatchIntoNetwork(*dataReader, m_net, nullptr, false, m_parallelRun, inputMatrices, actualMBSize))
+        while (DataReaderHelpers::GetMinibatchIntoNetwork<ElemType>(*dataReader, m_net, nullptr, false, m_parallelRun, inputMatrices, actualMBSize))
         {
             size_t actualNumSubminibatches = numSubminibatchesNeeded <= 1 ? 1 : smbDispatcher.GetMinibatchIntoCache(*dataReader, *m_net, inputMatrices, numSubminibatchesNeeded);
             for (size_t ismb = 0; ismb < actualNumSubminibatches; ismb++)
