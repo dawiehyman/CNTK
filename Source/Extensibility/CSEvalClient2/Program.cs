@@ -33,11 +33,15 @@ namespace Microsoft.MSR.CNTK.Extensibility.Managed.CSEvalClient
         /// <param name="args">Program arguments (ignored)</param>
         private static void Main(string[] args)
         {
+
+            // Set Dir for now
+            Environment.CurrentDirectory=@"E:\CNTK-tuts\RNN-char\Data";
+
             try
             {
                 // The examples assume the executable is running from the data folder
                 // We switch the current directory to the data folder (assuming the executable is in the <CNTK>/x64/Debug|Release folder
-                Environment.CurrentDirectory = Path.Combine(Environment.CurrentDirectory, @"..\..\Examples\Image\MNIST\Data\");
+                // Environment.CurrentDirectory = Path.Combine(Environment.CurrentDirectory, @"..\..\Examples\Image\MNIST\Data\");
                 
                 Dictionary<string, List<float>> outputs;
 
@@ -48,18 +52,28 @@ namespace Microsoft.MSR.CNTK.Extensibility.Managed.CSEvalClient
                     model.Init(config);
 
                     // Load model
-                    string modelFilePath = Path.Combine(Environment.CurrentDirectory, @"..\Output\Models\01_OneHidden");
+                    string modelFilePath = Path.Combine(Environment.CurrentDirectory, @"..\Output\Models\RNN-c-debug.cnn");
                     model.LoadModel(modelFilePath);
 
                     // Generate random input values in the appropriate structure and size
-                    var inputs = GetDictionary("features", 28*28, 255);
+                    var inputs = GetDictionary("features", 50, 76);
                     
                     // We can call the evaluate method and get back the results (single layer)...
-                    // List<float> outputList = model.Evaluate(inputs, "ol.z", 10);
+                     List<float> outputList;
+                    outputList= model.Evaluate(inputs, "cr",76);
 
-                    // ... or we can preallocate the structure and pass it in (multiple output layers)
-                    outputs = GetDictionary("ol.z", 10, 1);
-                    model.Evaluate(inputs, outputs);                    
+                    var newout = outputList.Select(i => i * 76);
+                    List<float> newoutList = newout.ToList();
+                     // ... or we can preallocate the structure and pass it in (multiple output layers)
+
+                    var dict = new Dictionary<string, List<float>>();
+                    dict.Add("output", outputList);
+
+                    outputs = dict;
+
+                    //outputs = GetDictionary("outputs", 50, 75);
+                    //model.Evaluate(inputs, outputs);  
+                    
                 }
                 
                 Console.WriteLine("--- Output results ---");
@@ -106,7 +120,7 @@ namespace Microsoft.MSR.CNTK.Extensibility.Managed.CSEvalClient
         static string GetConfig()
         {
             string configFilePath = Path.Combine(Environment.CurrentDirectory,
-                    @"..\Config\01_OneHidden.cntk");
+                    @"..\Config\rnnc.cntk");
 
             var lines = System.IO.File.ReadAllLines(configFilePath);
             return string.Join("\n", lines);
@@ -123,8 +137,11 @@ namespace Microsoft.MSR.CNTK.Extensibility.Managed.CSEvalClient
             List<float> list = new List<float>();
             if (size > 0 && maxValue >= 0)
             {
-                Random rnd = new Random();
-                list.AddRange(Enumerable.Range(1, size).Select(i => (float)rnd.Next(maxValue)).ToList());
+               // Random rnd = new Random();
+               // list.AddRange(Enumerable.Range(1, size).Select(i => (float)rnd.Next(maxValue)).ToList());
+               // Add starter sequence
+                var lst = new List<float> { 2, 57, 56, 66, 2, 55, 52, 52, 69, 2, 56, 63, 2, 69, 57, 52, 2, 66, 63, 62, 70, 9, 0, 0, 3, 44, 57, 72, 2, 53, 62, 63, 4, 69, 2, 70, 52, 2, 54, 62, 2, 51, 49, 50, 58, 22, 3, 2, 2, 57 };
+                list = lst;  
             }
 
             return list;
